@@ -1,0 +1,44 @@
+\chapter
+{Introduction}
+\section{Reinforcement Learning}
+In its essence, reinforcement learning is about learning what to do, how to map situations to actions - so as to maximize some numerical reward system. In the most interesting cases, these actions effect future states, or situations, and through that, subsequent rewards. The two main characteristics of the reinforcement problem are \textit{trial and error} and \textit{delayed reward}, which distinguish reinforcement learning.
+
+This problem is formalized borrowing from ideas in dynamical systems theory\margsm{poi}. In particular, the \textit{optimal control of incompletely-known Markov decision processes}. We will discuss this further in Ch. 3, but the main idea is that a \textit{learning agent} must be able to sense to state of its environment to some extent and must be able to take actions that affect that state. Moreover, the agent must have goals relating to the state of the environment. \textit{Markov Decision Processes}\margsm{poi} are intended to include these three aspects; sensation, action, and goal. Any method that is well suited to solving such problems are considered reinforcement learning methods.
+\subsection
+{Characteristics of reinforcement learning problem}
+\begin{enumerate}
+    \item \textit{Trade off between exploration and exploitation.} Neither can be exclusively pursued without failing at the task. On a stochastic task, each action must be tried many times to gain a reliable estimate of its expected reward.\margsm{Note that this paradigm does not come up in supervised or unsupervised learning frameworks.}
+    \item \textit{Considering the whole problem}. Other methods of learning consider subsets of problems and often do not include any notion of over arching goal. Meanwhile RL considers the whole problem of a goal-directed agent interacting with an uncertain environment. Here we start with a \textit{complete, interactive, goal-seeking agent}.
+\end{enumerate}
+\remark	{
+Reinforcement learning can include supervised learning, for example when determining which capabilities are critical and which are not.
+}
+Sutton goes on to list a few examples of rl agents (not necessarily robots!), and notes that all of them involve \textit{interaction} with their environment and a \textit{goal despite uncertainty}. Correct choices require taking into account indirect, delayed consequences of actions, and can thus require foresight and planning.
+\subsection
+{Elements of reinforcement learning}
+\begin{enumerate}
+    \item A \textit{policy} is a mapping from perceived states of the environment to actions to be taken when in those states. This corresponds to stimulus response rules or associations in psychology. In general, policies may be stochastic, specifying probabilities for each action.
+    \item A \textit{reward signal} denies the goal of the problem. On each time step, the environment sends the agent a \textit{single number} called the reward.
+        \begin{center}
+            The agent's sole objective is to maximize the total reward it receives over the long run.
+        \end{center}
+        This is the primary basis for altering policy.
+    \item A \textit{value function} specifies what is good in the long run. Crudely put, a value of a state is the total amount of reward the agent can expect to accumulate over the future, starting from that state. Without rewards there would be no values, and the only purpose of estimating values is to achieve more reward\margsm{woah.} Nevertheless, values are what we are really interested in, but they are unfortunately much harder to determine. Values must be estimated and re estimated from observations over an entire lifetime.
+    \item Laslty, the \textit{model} of the environment allows inferences to be made about how the environment will behave. Models are used for \textit{planning}, ie. considering possible future situations before they are experienced.\margsm{Model free methods are explicitly trial-and-error based, almost the opposite of planning.}
+\end{enumerate}
+\example {
+\textit{Tic-Tac-Toe.} Sutton discusses this extended example to highlight some key steps:
+\begin{itemize}
+    \item Initialize a table of numbers, one for each possible state of the game. Each number will be the latest estimate of the probability of our winning from that state. We treat this is the state's value; the whole table is the learned function. In this example, if we are playing \textbf{X}s, then for all states with three \textbf{X}s in a row the probability of winning is 1 (and similarly for losing cases). The initial values of all other states is 0.5.
+    \item \textit{Repeated measurements}. Play many games against the opponent. Most of the time, we move \textit{greedily} to maximize the immediate reward. But occasionally we select randomly among other moves. This is called an \textit{exploratory move}. In this case, the value function is not updated.
+
+        We attempt to make more accurate estimates over time. To acheive this, we "back up" the value of the state after each greedy move so that the value of the earlier state is a fraction of the way toward the value of the later state. Let $S_t$ denote the state before the greedy move, $S_{t+1}$ the state after the move. Given a value function $V(S_t)$ \[
+            V(S_t) \leftarrow V(S_t)+ \alpha\big[V(S_{t+1}- V(S_t)) \big]
+        ,\] 
+        where $\alpha$ is a small positive fraction called the \textit{step-size parameter.} This update rule is an example of a \textit{temporal difference} learning method.
+        
+\end{itemize}
+}
+
+\part{Tabular Solution Methods}
+

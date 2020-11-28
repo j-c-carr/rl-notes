@@ -1,0 +1,4 @@
+New Lecture,$HOME/.config/rofi/view-notes.sh new_lecture
+View Assignment,/home/jcc/.config/rofi/view-notes.sh view_assignment
+Master,$HOME/.config/rofi/view-notes.sh master
+Lecture 01,/home/jcc/.config/rofi/view-notes.sh lec_01

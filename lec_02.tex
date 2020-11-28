@@ -1,0 +1,146 @@
+\chapter
+{Multi-armed Bandits}
+Importantly, we use training information that \textit{evaluates }actions rather than \textit{instructs} by giving correct actions. In this chapter we study the evaluative aspect of rl problems. In particular, we discuss nonassociative, evaluative feedback problem is a simple version of the $k$-armed bandit problem to introduce some basic learning methods.
+\section{A $k$-armed bandit problem}
+Repeatedly faced with choosing among $k$ different options, each with a numerical reward from a stationary probability.
+
+Each of the $k$ actions has an expected mean or reward given that the action is satisfied. Call this the \textit{value} of that action. Let $A_t$ be the action taken at timestep $t$, corresponding to a reward $R_t$, $q_*(a)$ be the expected reward given that $a$ is selected.
+\marg{If you knew the value of each action, then it would be trivial to solve.}
+\[
+    q_*(a) \doteq \mathbb{E}[R_t \mid A_t=a]
+.\] 
+\definition {\textbf{Estimated Value}}{
+    Denote estimated value of action $a$ at timestep $t$ as $Q_t(a)$. We would like $Q_t(a) \rightarrow q_*(a)$.
+}
+\definition {}{
+If we maintain these estimates of the action values, then for any time $t$ there is an action whose estimated value is the greatest. These are \textbf{greedy} actions. When selected, we \textit{exploit} current knowledge.
+}
+
+Some small fraction of the time, we instead choose to \textit{explore}. This enables you to improve your estimate of the nongreedy's action value.
+\section{Action-value methods}
+\definition{\textbf{True Value}}{
+The \textbf{true value} of an action is the mean reward when that action is selected. One natural way to estimate is by averaging the rewards actually received by summing the rewards when $a$ is taken prior to $t$ and dividing.
+\begin{equation}
+\label{eq:acval}
+Q_t(a) \doteq \frac{\sum_{i=1}^{t-1} R_i\cdot \mathbb{1}_{A_i=a}}{\sum_{i=1}^{t-1} \mathbb{1}_{A_i=1}}
+\end{equation}
+where $\mathbb{1}_x$ denotes the random variable that is 1 if $x$ is true and 0 otherwise.\margsm{If denominator is zero, we set $Q_t(a)$ as some default value.}
+This is 
+}
+(\ref{eq:acval}) is called the \textit{sample average method}. The simplest selection rule is to select the actions with the highest estimated value, written as
+\begin{equation}
+\label{eq:simp}
+A_t \doteq \argmax_a Q_t(a)
+,\end{equation}
+where $\argmax_a$ denotes the action $a$ for which the expression that follows it is maximized.
+\definition{\textbf{$\varepsilon$-greedy methods}{
+        Behave greedily most of the time, and then with small probability $\varepsilon$, we randomly select from among all the actions with equal probability, independently of action value estimates.\margsm{Guaranteed for $Q_t(a)$ convergence to $q_*(a)$ for infinite number of timesteps.}
+}
+\remark	{
+    The advantage of $\varepsilon$-grey methods depends on the task.
+    \begin{itemize}
+        \item Suppose reward variance is larger (than 1). Then $\varepsilon$-greedy performs better because it with noisier reward it takes more time to find the optimal action.
+        \item If there was zero variance, then the greedy method might perform better. However, this is highly unlikely, especially when the mean or true value for a reward changes with time.
+    \end{itemize}
+}
+\section{The 10 arm test bed}
+\textit{View solutions in repository}
+\section{Incremental Implementation}
+Goal: we want to store estimated action values efficiently (constant time and memory).
+Let $Q_n$ be the estimated value of an action after it has been selected $n-1$ times, $R_i$ be the reward of that action at the $i$th selection. \[
+    Q_n \doteq \frac{R_1+\ldots+R_{n-1}}{n-1}
+.\] 
+\marg{Proof in textbook.}
+We devise an \textit{incremental} formula for updating averages.
+\begin{equation}
+\label{eq:inc}
+    Q_{n+1} = Q_n + \frac{1}{n}\big[ R_n- Q_n \big] \tag{}
+.\end{equation}
+The general form of this incremental formula appears often in later chapters,
+\begin{equation}
+\label{eq:geninc}
+\text{New Estimate}\leftarrow \text{Old Estimate}+ \text{StepSize}\underbrace{[\text{Target }- \text{ Old Estimate}]}_{\text{error}}
+.\end{equation}
+Error is reduced by taking a step towards the target.
+\remark	{
+    The step size in (\ref{eq:inc}) changes between time steps. Denote this parameter as $\alpha_t(a)$
+}
+\section{Tracking a Nonstationary problem}
+In the previous examples, the reward probabilities do not change over time. However, it is often the case that the rewards are nonstationary, where it makes sens to give more weight to recent rewards than long-past rewards. 
+
+One of the easiest ways to do this is to use a constant step-size parameter. For example,
+\begin{equation}
+\label{e.2.cons}
+Q_{n+1} \doteq Q_n+ \alpha [R_n- Q_n] 
+,\end{equation}
+where $\alpha\in (0,1]$ is constant. This results in  $Q_{n+1}$ being a \textit{weighted average} of past rewards and the initial estimate $Q_1$:
+\begin{align*}
+    Q_{n+1} &= Q_n + \alpha[R_n-Q_n] \\
+            &= \alpha R_n + (1-\alpha)Q_n \\
+            &= \alpha R_n + (1-\alpha)[Q_{n-1}+ \alpha R_{n-1}- \alphaQ_{n-1}] \\
+            &=  \alpha R_n + (1-\alpha)\alpha R_{n-1}+ (1-\alpha)^2Q_{n-1} \\
+            &= (1-\alpha)^{n} Q_1 + \sum_{i=1}^{n} \alpha(1-\alpha)^{n-i}R_i
+.\end{align*}
+The sum of the weights is $(1-\alpha)^{n}+ \sum_{i=1}^{n} \alpha(1-\alpha)^{n-1}=1$\margsm{Proof by induction.}. The weight given to $R_i$ decreases exponentially, which is why this is sometimes called an \textit{exponential recency average.}a
+
+Sometimes it is convenient to vary the step-size parameter from step to step. Let $\alpha_n(a)$ denote the step-size parameter used to process the reward received after the $n$ th selection of action $a$. Note that not all choices in $\{\alpha_n(a)\} $ are guaranteed to converge. The criterion for convergence are
+\begin{itemize}
+    \item $\sum_{n=1}^{\infty} \alpha_n(a)= \infty$, to guarantee that the steps are large enough to eventually overcome any initial conditions or random fluctuations.
+    \item $\sum_{n=1}^{\infty} \alpha_n^2(a)< \infty$, to guarantee that the steps become small enough to reach convergence.
+\end{itemize}
+\remark	{
+    With a constant step size parameter, $\alpha_n(a)= \alpha$, the estimate never completely converges but continue to vary in response to most recently received rewards. This can actually be desirable in nonstationary problems, which are the most common in reinforcement learning.
+}
+\section{Optimistic Initial Values}
+Our previous methods are somewhat dependent on their initial estimates. These events are \textit{biased}\margsm{Results differs from true parameter being estimated.} by their initial estimates. For methods with a constant step-size parameter, the bias is permanent, although decreasing over time.
+
+We can use this to our advantage, however. We can choose optimistic initial estimates that encourages action-value methods to explore. The learner is always disappointed in its initial rewards so it will explore other options. This is effective on stationary problems, but not well suited otherwise since its drive for exploration is inherently temporary.
+
+\section
+{Upper Confidence-Bound Action Selection}
+Recall that $\epsilon$-greedy methods explore indiscriminately. It would be better to select among non-greedy actions according to their potential for actually being optimal, taking into account both how close their estimates are to being maximal and the uncertainties in those estimates.
+\begin{equation}
+\label{e.ucb}
+A_t \doteq \argmax_{a} \left[ Q_t(a) + c \sqrt{\frac{\ln t}{N_t(a)}} \right]
+,\end{equation}
+where $N_t(a)$ is the number of times that action $a$ has been selected prior to time $t$. The number $c>0$ controls the degree of exploration.
+
+The idea is that the second term is a measure of the uncertainty or variance in the estimate a's value. So the quantity being max'd over is sort of upper bound on the possible true value of action $a$, with $c$ determining the confidence level. 
+
+Every time $a$ is selected, $N_t(a)$ increases, and the variance decreases. If it does not, then  $t$ will increase and so will the uncertainty.
+
+UCB often perform well in stationary problems.
+
+\section{Gradient bandit algorithms}
+So far we have considered methods that estimate action value and then use those estimates to select actions. In this section we learn a \textit{numerical preference} for each action $a$, denoted $H_t(a)$. The larger the preference, the more often the reward is taken. Importantly, the preference has no interpretation in terms of reward; only relative preference is considered.
+
+Action preferences are determined according to a \textit{softmax}\margsm{A function that takes as input a vector and normalizes it to have values between 0 and 1, with the sum of all components equal to 1. eg, \[
+        \sigma({\bf z})_i= \frac{e^{z_i}}{\sum_{j=1}^{K} e^{z_i}}
+.\] 
+} distribution, as follows, 
+\begin{equation}
+\label{e.soft}
+Pr \{A_t=a\} \doteq \frac{e^{H(t)}}{\sum_{b=1}^{k} e^{H_t(b)}} \doteq \pi_t (a)
+,\end{equation}
+where $\pi_t(a)$ denotes the probability of taking action $a$ at time $t$. Initially all action preferences are the same for each action to be equally likely to be selected.
+
+With this we can apply a form of stochastic gradient ascent, updating action preference after selecting action $A_t$ by
+\begin{align*}
+    H_{t+1}(a) &\doteq H_t(A_t)+ \alpha(R_t - \overline{R}_t)(1- \pi_t(A_t)),\\
+    H_{t+1}(a) &\doteq H_t(a)- \alpha(R_t - \overline{R}_t)\pi_t(a) \quad  \forall a\neq A_t
+.\end{align*}
+$\overline{R}_t$ is the average reward up to and including time $t$ (computed incrementally in 2.4). This term serves as a baseline; if the reward is higher, then the probability of taking $A_t$ in the future is increased (or decreased). Non-selected actions move in the opposite direction\margsm{For elaboration on gradient ascent see textbook derivation.}.
+\section{Associative search (contextual bandits)}
+Moving forward, our goal is to learn a policy. In this section we introduce an intermediary step between bandits and the full reinforcement learning problem.
+
+Suppose that when a bandit task is selected, you get a distinctive clue about its identity. \textit{Associative search} involves both trial and error learning find the best actions, and \textit{association}of these actions with the situations in which they are best. They are similar to the full problem in that they involve a learning policy, but like the $k$-armed bandit problem, each action only affects the intermediate reward.
+
+When actions are allowed to affect the \textit{next situation} as well as the reward, then we have the full problem.
+
+\section{Summary}
+\subsubsection
+{Gittin's Index}
+One well-suited approach to balancing exploration and exploitation is to compute a special kind of aciton value called the \textit{Gittin's Index}. It can lead to optimal solutions without knowledge of prior distribution of problems. It is an instance of Bayesian methods.
+
+In this setting it is conceivable to compute \textit{optimal} balance between exploration and exploitation.
+
