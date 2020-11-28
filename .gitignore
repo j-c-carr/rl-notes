@@ -6,3 +6,5 @@
 *.aux
 *.fdb_latexmk
 .yaml
+.csv
+/code/.ipynb_checkpoints
